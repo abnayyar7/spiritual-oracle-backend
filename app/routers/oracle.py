@@ -84,7 +84,7 @@ def ask_question(
                 detail="Source total_units must be a positive integer.",
             )
 
-        global_index = (request.number % source.total_units) + 1
+        global_index = ((request.number - 1) % source.total_units) + 1
         entry = session.exec(
             select(models.Entry)
             .where(
