@@ -5,6 +5,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from google import genai
+from google.genai import types
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
@@ -100,11 +101,38 @@ def ask_question(
                 detail="Entry not found for the requested number.",
             )
 
-        translation_text = entry.translations[0].text if entry.translations else entry.original_text
-        prompt = (
-            "You are a wise Bhagavad Gita oracle. Answer the user's question succinctly and include references to the Gita whenever relevant. "
-            "If you cannot answer from authoritative Vedic sources, say so clearly."
-            f"\n\nOriginal text:\n{entry.original_text}\n\nTranslation:\n{translation_text}\n\nQuestion: {request.question}"
+        sivananda_translation = next(
+            (
+                t
+                for t in entry.translations
+                if t.author == "Swami Sivananda" and t.language == "en" and t.type == "translation"
+            ),
+            None,
+        )
+        english_translation = next(
+            (t for t in entry.translations if t.language == "en" and t.type == "translation"),
+            None,
+        )
+        translation_text = (
+            sivananda_translation.text
+            if sivananda_translation
+            else english_translation.text
+            if english_translation
+            else entry.original_text
+        )
+        system_instruction = (
+            "You are a wise spiritual guide offering personal counsel, speaking directly and warmly to someone "
+            "who has come to you with a question and received a verse from the Bhagavad Gita as their guidance. "
+            "Speak to them directly, as a teacher would to a student they care about. "
+            "In 3-4 sentences, connect the wisdom of the verse to their question — even if the connection requires "
+            "interpretation, always find genuine relevance. Do not use bullet points or lists. Do not cite other "
+            "verses or chapters by number. Do not say the verse \"doesn't address\" their question. Write with "
+            "warmth, not analysis."
+        )
+        contents = (
+            f"Verse: {entry.original_text}\n"
+            f"Translation: {translation_text}\n"
+            f"Their question: {request.question}"
         )
 
         client = create_gemini_client()
@@ -112,7 +140,11 @@ def ask_question(
         try:
             response = client.models.generate_content(
                 model=settings.ai_model,
-                contents=prompt,
+                contents=contents,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_instruction,
+                    temperature=0.9,
+                ),
             )
         except Exception as exc:
             logger.info("model=%s call FAILED | error=%s", settings.ai_model, exc)
@@ -134,7 +166,7 @@ def ask_question(
             user_id=UUID(current_user),
             source_id=source.id,
             user_question=request.question,
-            user_number=profile.questions_used,
+            user_number=request.number,
             resolved_global_index=global_index,
             generated_takeaway=answer,
             llm_model_used=settings.ai_model,
