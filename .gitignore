@@ -1,0 +1,23 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+*.db
+
+# Secrets
+.env
+.env.example
+
+# Logs and debug/output artifacts
+*.log
+dry_run_output.txt
+grouped_ids.txt
+insert_output.txt
+inspection_output.txt
+last_entry.json
