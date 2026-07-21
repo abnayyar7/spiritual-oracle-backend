@@ -15,6 +15,8 @@ class AskResponse(BaseModel):
     model: str
     free_queries_used: int
     entry: "EntryOut"
+    selected_translation: str
+    selected_translation_author: str | None
 
 
 class TranslationOut(BaseModel):

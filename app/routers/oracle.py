@@ -122,6 +122,7 @@ def ask_question(
             )
 
         translation_text = entry.original_text
+        selected_translation_author = None
         for priority_author in PRIORITY_TRANSLATION_AUTHORS:
             candidate = next(
                 (
@@ -133,6 +134,7 @@ def ask_question(
             )
             if candidate is not None and not _is_placeholder_translation(candidate.text):
                 translation_text = candidate.text
+                selected_translation_author = candidate.author
                 break
         else:
             fallback_translation = next(
@@ -144,6 +146,12 @@ def ask_question(
                 None,
             )
             translation_text = fallback_translation.text if fallback_translation else entry.original_text
+            selected_translation_author = fallback_translation.author if fallback_translation else None
+
+        logger.info(
+            "translation debug | entry_id=%s selected_author=%s translation_text_preview=%r",
+            entry.id, selected_translation_author, translation_text[:60]
+        )
 
         system_instruction = (
             "You are a wise spiritual guide offering personal counsel, speaking directly and warmly to someone "
@@ -218,6 +226,8 @@ def ask_question(
             model=settings.ai_model,
             free_queries_used=profile.questions_used,
             entry=entry,
+            selected_translation=translation_text,
+            selected_translation_author=selected_translation_author,
         )
     except HTTPException:
         raise
