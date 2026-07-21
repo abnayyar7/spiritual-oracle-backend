@@ -16,6 +16,20 @@ from app.database import get_session
 
 router = APIRouter(prefix="/ask", tags=["ask"])
 
+PRIORITY_TRANSLATION_AUTHORS = [
+    "Swami Sivananda",
+    "Swami Adidevananda",
+    "Shri Purohit Swami",
+    "Swami Gambirananda",
+    "Dr.S.Sankaranarayan",
+    "A.C. Bhaktivedanta Swami Prabhupada",
+]
+
+
+def _is_placeholder_translation(text: str) -> bool:
+    stripped = text.strip()
+    return len(stripped) < 15 or "see comment under" in stripped.lower()
+
 logger = logging.getLogger("oracle.ask")
 logger.setLevel(logging.INFO)
 if not logger.handlers:
@@ -85,7 +99,13 @@ def ask_question(
                 detail="Source total_units must be a positive integer.",
             )
 
-        global_index = ((request.number - 1) % source.total_units) + 1
+        if request.number < 1 or request.number > source.total_units:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Number must be between 1 and {source.total_units}.",
+            )
+
+        global_index = request.number
         entry = session.exec(
             select(models.Entry)
             .where(
@@ -101,25 +121,30 @@ def ask_question(
                 detail="Entry not found for the requested number.",
             )
 
-        sivananda_translation = next(
-            (
-                t
-                for t in entry.translations
-                if t.author == "Swami Sivananda" and t.language == "en" and t.type == "translation"
-            ),
-            None,
-        )
-        english_translation = next(
-            (t for t in entry.translations if t.language == "en" and t.type == "translation"),
-            None,
-        )
-        translation_text = (
-            sivananda_translation.text
-            if sivananda_translation
-            else english_translation.text
-            if english_translation
-            else entry.original_text
-        )
+        translation_text = entry.original_text
+        for priority_author in PRIORITY_TRANSLATION_AUTHORS:
+            candidate = next(
+                (
+                    t
+                    for t in entry.translations
+                    if t.author == priority_author and t.language == "en" and t.type == "translation"
+                ),
+                None,
+            )
+            if candidate is not None and not _is_placeholder_translation(candidate.text):
+                translation_text = candidate.text
+                break
+        else:
+            fallback_translation = next(
+                (
+                    t
+                    for t in entry.translations
+                    if t.language == "en" and t.type == "translation" and not _is_placeholder_translation(t.text)
+                ),
+                None,
+            )
+            translation_text = fallback_translation.text if fallback_translation else entry.original_text
+
         system_instruction = (
             "You are a wise spiritual guide offering personal counsel, speaking directly and warmly to someone "
             "who has come to you with a question and received a verse from the Bhagavad Gita as their guidance. "
@@ -127,7 +152,8 @@ def ask_question(
             "In 3-4 sentences, connect the wisdom of the verse to their question — even if the connection requires "
             "interpretation, always find genuine relevance. Do not use bullet points or lists. Do not cite other "
             "verses or chapters by number. Do not say the verse \"doesn't address\" their question. Write with "
-            "warmth, not analysis."
+            "warmth, not analysis. Always respond in English, regardless of the language of the verse or "
+            "translation provided."
         )
         contents = (
             f"Verse: {entry.original_text}\n"
