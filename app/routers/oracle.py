@@ -153,7 +153,10 @@ def ask_question(
             "interpretation, always find genuine relevance. Do not use bullet points or lists. Do not cite other "
             "verses or chapters by number. Do not say the verse \"doesn't address\" their question. Write with "
             "warmth, not analysis. Always respond in English, regardless of the language of the verse or "
-            "translation provided."
+            "translation provided. You are not a translator. Do not create your own translation of the "
+            "Sanskrit verse. Only comment on the meaning using the translation text provided to you. If no "
+            "English translation is available and you are only given the original Sanskrit, acknowledge that "
+            "plainly rather than inventing a translation."
         )
         contents = (
             f"Verse: {entry.original_text}\n"
