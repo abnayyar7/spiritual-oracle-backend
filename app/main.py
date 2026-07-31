@@ -4,7 +4,7 @@ logging.basicConfig(level=logging.INFO)
 
 from fastapi import FastAPI
 
-from app.routers import oracle
+from app.routers import oracle, sources
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -19,6 +19,7 @@ app.add_middleware(
 )
 
 app.include_router(oracle.router)
+app.include_router(sources.router)
 
 
 @app.get("/")

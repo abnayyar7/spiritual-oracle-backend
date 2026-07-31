@@ -15,8 +15,22 @@ class AskResponse(BaseModel):
     model: str
     free_queries_used: int
     entry: "EntryOut"
-    selected_translation: str
+    # None when the entry has no usable English translation (e.g. the
+    # Ramcharitmanas gap entries) — callers must not treat it as a string.
+    selected_translation: str | None
     selected_translation_author: str | None
+
+
+class SourceSummary(BaseModel):
+    """Catalogue entry for the source selector. Deliberately thinner than
+    SourceOut, which eagerly carries sections and entries."""
+
+    id: int
+    slug: str
+    title: str
+    total_units: int
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class TranslationOut(BaseModel):

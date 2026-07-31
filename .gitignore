@@ -21,3 +21,30 @@ grouped_ids.txt
 insert_output.txt
 inspection_output.txt
 last_entry.json
+
+# Generated analysis reports. All are outputs of scripts/ -- regenerate by
+# re-running the script, never edit by hand. None is read at runtime; the API
+# does not open any of them, so losing them cannot affect the app.
+audit_results.json
+text_quality_audit.json
+gemini_fill_report.json
+smoke_results.json
+realign_report.json
+realign_report_*.json
+
+# Sweep harness output (checkpoints, per-run results)
+sweep_results.json
+full_sweep_results.json
+full_sweep_checkpoint.jsonl
+
+# Scratch/one-off outputs
+*_output.txt
+*_report.json
+*_results.json
+*_checkpoint.jsonl
+
+# Data pipeline / tooling.
+# Nothing here is imported by app/ -- the API reads the database only, so the
+# running service is unaffected by their absence. They are the loaders, audit,
+# gating and repair tools that populated and corrected the corpus.
+scripts/
