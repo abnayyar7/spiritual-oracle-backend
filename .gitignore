@@ -48,3 +48,5 @@ full_sweep_checkpoint.jsonl
 # running service is unaffected by their absence. They are the loaders, audit,
 # gating and repair tools that populated and corrected the corpus.
 scripts/
+!scripts/generate_qotd.py
+!scripts/sql/
