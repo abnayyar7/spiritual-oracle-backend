@@ -31,6 +31,10 @@ gemini_fill_report.json
 smoke_results.json
 realign_report.json
 realign_report_*.json
+classification_all.json
+gita_classification.json
+gita_classification.md
+rcm_classification.md
 
 # Sweep harness output (checkpoints, per-run results)
 sweep_results.json
