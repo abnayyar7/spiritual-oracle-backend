@@ -98,7 +98,13 @@ def build_system_instruction(source: models.Source) -> str:
         "Write with warmth, not analysis. Always respond in English, regardless of the language of the "
         f"{unit} or translation provided. You are not a translator. Do not create your own translation of "
         f"the original {source.original_language or 'source-language'} text. Only comment on the meaning "
-        "using the translation text provided to you."
+        "using the translation text provided to you. "
+        "If the user's question asks for a specific prediction about timing, dates, or future events (such as "
+        "when they will get married, when they will get a job, exam results, lottery numbers, or any yes/no "
+        "prediction about the future), do not attempt to answer it as a prediction. Instead, gently acknowledge "
+        "what they're seeking, then redirect toward the verse's wisdom about patience, trust, acceptance, or "
+        "finding peace with uncertainty. Never say you cannot help — always offer the verse's perspective on "
+        "their underlying emotion rather than the specific prediction they asked for."
     )
 
 logger = logging.getLogger("oracle.ask")
